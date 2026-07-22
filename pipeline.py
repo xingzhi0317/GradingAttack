@@ -214,6 +214,8 @@ class GradingDefensePipeline:
         )[0]
 
     def _run_gcg_attack(self, prompt: str, original_resp: str):
+        import glob
+        import json
         import nanogcg
 
         target = self.config.params["target"]
@@ -243,6 +245,10 @@ class GradingDefensePipeline:
         promote_max_loss = two_stage.get("promote_max_loss")
         verify_every = int(two_stage.get("verify_every", strong_params.get("num_steps", 100)))
         max_strong_steps = int(two_stage.get("max_strong_steps", strong_params.get("num_steps", 100)))
+        attempts = max(1, int(two_stage.get("attempts", 1)))
+        attempt_seeds = two_stage.get("attempt_seeds") or []
+        stalled_after_steps = two_stage.get("stalled_after_steps")
+        stalled_min_loss = two_stage.get("stalled_min_loss")
 
         meta = {
             "gcg_mode": "two_stage",
@@ -252,7 +258,59 @@ class GradingDefensePipeline:
             "promote_max_loss": promote_max_loss,
             "verify_every": verify_every,
             "max_strong_steps": max_strong_steps,
+            "attempts": attempts,
+            "attempt_seeds": attempt_seeds,
+            "stalled_after_steps": stalled_after_steps,
+            "stalled_min_loss": stalled_min_loss,
         }
+
+        transfer_suffixes = list(two_stage.get("transfer_suffixes", []) or [])
+        for suffix_glob in two_stage.get("transfer_suffix_globs", []) or []:
+            for suffix_path in sorted(glob.glob(suffix_glob)):
+                with open(suffix_path, "r", encoding="utf-8") as f:
+                    for line in f:
+                        if not line.strip():
+                            continue
+                        row = json.loads(line)
+                        row_meta = row.get("meta", {})
+                        suffix = row_meta.get("best_string")
+                        if not suffix or suffix in transfer_suffixes:
+                            continue
+                        row_original = extract_grade(row.get("original_response", ""))
+                        row_attacked = extract_grade(row.get("attacked_response", ""))
+                        if row_original != target_grade and row_attacked == target_grade:
+                            transfer_suffixes.append(suffix)
+
+        transfer_limit = two_stage.get("transfer_suffix_limit")
+        if transfer_limit is not None:
+            transfer_suffixes = transfer_suffixes[:int(transfer_limit)]
+
+        transfer_records = []
+        for suffix_idx, suffix in enumerate(transfer_suffixes):
+            transfer_messages = [{"role": "user", "content": prompt + suffix}]
+            transfer_resp = self._generate(transfer_messages)
+            transfer_grade = extract_grade(transfer_resp)
+            transfer_records.append({
+                "suffix_idx": suffix_idx,
+                "response_grade": transfer_grade,
+                "success": self._is_target_flip(original_resp, transfer_resp, target_grade),
+            })
+            if transfer_records[-1]["success"]:
+                meta.update({
+                    "gcg_mode": "transfer_suffix_bank",
+                    "transfer_suffix_count": len(transfer_suffixes),
+                    "transfer_records": transfer_records,
+                    "best_string": suffix,
+                    "verified_success": True,
+                    "success_stage": f"transfer_suffix_{suffix_idx}",
+                })
+                return transfer_messages, transfer_resp, meta
+
+        if transfer_suffixes:
+            meta.update({
+                "transfer_suffix_count": len(transfer_suffixes),
+                "transfer_records": transfer_records,
+            })
 
         print("[pipeline] GCG screening stage...", flush=True)
         screen_result = nanogcg.run(
@@ -291,39 +349,103 @@ class GradingDefensePipeline:
             return attacked_messages, attacked_resp, meta
 
         print("[pipeline] GCG strong stage with generation-verified checkpoints...", flush=True)
-        steps_run = 0
-        while steps_run < max_strong_steps:
-            chunk_steps = min(verify_every, max_strong_steps - steps_run)
-            chunk_params = deepcopy(strong_params)
-            chunk_params["num_steps"] = chunk_steps
-            chunk_params["optim_str_init"] = best_string
-            chunk_params["early_stop"] = False
-
-            chunk_result = nanogcg.run(
-                self.model,
-                self.tokenizer,
-                [{"role": "user", "content": prompt}],
-                target,
-                nanogcg.GCGConfig(**chunk_params),
+        all_attempts = []
+        total_steps_run = 0
+        global_best_string = best_string
+        global_best_loss = best_loss
+        for attempt_idx in range(attempts):
+            attempt_best_string = best_string
+            attempt_best_loss = best_loss
+            steps_run = 0
+            attempt_seed = (
+                attempt_seeds[attempt_idx]
+                if attempt_idx < len(attempt_seeds)
+                else strong_params.get("seed", base_config.get("seed"))
             )
-            steps_run += chunk_steps
-            best_string = chunk_result.best_string
-            best_loss = float(chunk_result.best_loss)
-            attacked_messages = [{"role": "user", "content": prompt + best_string}]
-            attacked_resp = self._generate(attacked_messages)
+            attempt_record = {
+                "attempt": attempt_idx,
+                "seed": attempt_seed,
+                "start_loss": attempt_best_loss,
+                "checkpoints": [],
+                "stopped": False,
+                "stop_reason": None,
+            }
 
+            while steps_run < max_strong_steps:
+                chunk_steps = min(verify_every, max_strong_steps - steps_run)
+                chunk_params = deepcopy(strong_params)
+                chunk_params["num_steps"] = chunk_steps
+                chunk_params["optim_str_init"] = attempt_best_string
+                chunk_params["early_stop"] = False
+                if attempt_seed is not None:
+                    chunk_params["seed"] = int(attempt_seed) + steps_run
+
+                chunk_result = nanogcg.run(
+                    self.model,
+                    self.tokenizer,
+                    [{"role": "user", "content": prompt}],
+                    target,
+                    nanogcg.GCGConfig(**chunk_params),
+                )
+                steps_run += chunk_steps
+                total_steps_run += chunk_steps
+                attempt_best_string = chunk_result.best_string
+                attempt_best_loss = float(chunk_result.best_loss)
+                attacked_messages = [{"role": "user", "content": prompt + attempt_best_string}]
+                attacked_resp = self._generate(attacked_messages)
+
+                if attempt_best_loss < global_best_loss:
+                    global_best_string = attempt_best_string
+                    global_best_loss = attempt_best_loss
+
+                checkpoint = {
+                    "steps_run": steps_run,
+                    "loss": attempt_best_loss,
+                    "response_grade": extract_grade(attacked_resp),
+                }
+                attempt_record["checkpoints"].append(checkpoint)
+                meta.update({
+                    "best_string": global_best_string,
+                    "best_loss": global_best_loss,
+                    "attempt_best_string": attempt_best_string,
+                    "attempt_best_loss": attempt_best_loss,
+                    "strong_steps_run": total_steps_run,
+                    "last_verified_response": attacked_resp,
+                    "current_attempt": attempt_idx,
+                })
+                if self._is_target_flip(original_resp, attacked_resp, target_grade):
+                    meta.update({
+                        "best_string": attempt_best_string,
+                        "best_loss": attempt_best_loss,
+                        "verified_success": True,
+                        "success_stage": f"strong_attempt_{attempt_idx}_{steps_run}",
+                    })
+                    attempt_record["success"] = True
+                    break
+
+                if (
+                    stalled_after_steps is not None
+                    and stalled_min_loss is not None
+                    and steps_run >= int(stalled_after_steps)
+                    and attempt_best_loss > float(stalled_min_loss)
+                ):
+                    attempt_record["stopped"] = True
+                    attempt_record["stop_reason"] = "loss_above_stalled_threshold"
+                    break
+
+            all_attempts.append(attempt_record)
+            if meta.get("verified_success"):
+                break
+
+        meta["attempt_records"] = all_attempts
+        if not meta.get("verified_success"):
+            attacked_messages = [{"role": "user", "content": prompt + global_best_string}]
+            attacked_resp = self._generate(attacked_messages)
             meta.update({
-                "best_string": best_string,
-                "best_loss": best_loss,
-                "strong_steps_run": steps_run,
+                "best_string": global_best_string,
+                "best_loss": global_best_loss,
                 "last_verified_response": attacked_resp,
             })
-            if self._is_target_flip(original_resp, attacked_resp, target_grade):
-                meta.update({
-                    "verified_success": True,
-                    "success_stage": f"strong_{steps_run}",
-                })
-                break
 
         return attacked_messages, attacked_resp, meta
 

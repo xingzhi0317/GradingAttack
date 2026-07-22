@@ -1,4 +1,6 @@
-logs/
+logs/*
+!logs/gcg/
+!logs/gcg/**
 logs_defense/
 result/
 result_defense/

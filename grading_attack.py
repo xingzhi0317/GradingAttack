@@ -1,5 +1,3 @@
-from baselines.roleplay.roleplay import RolePlay
-from baselines.gcg.gcg import GCG
 from baselines.defenses import (
     PerplexityFilter, SmoothLLM, SelfReminder,
     ParaphraseDefense, BaseDefense,
@@ -44,8 +42,10 @@ class GradingAttack:
             # pipeline 模式: 在 pipeline.py 中统一处理
             self.attack = None
         elif config.attack_method.lower() == "gcg":
+            from baselines.gcg.gcg import GCG
             self.attack = GCG(config)
         elif config.attack_method.lower() == "roleplay":
+            from baselines.roleplay.roleplay import RolePlay
             self.attack = RolePlay(config)
         else:
             raise ValueError(f"Not supported attack method {config.attack_method}")
@@ -56,11 +56,19 @@ class GradingAttack:
             import torch
             from transformers import AutoModelForCausalLM, AutoTokenizer
 
+            device = self.config.params.get("device") or (
+                "cuda" if torch.cuda.is_available() else "cpu"
+            )
+            print(f"[grading_attack] Using device: {device}, dtype: bfloat16", flush=True)
             model = AutoModelForCausalLM.from_pretrained(
                 self.config.model_config.path,
                 trust_remote_code=True,
                 torch_dtype=torch.bfloat16,
-            ).to(self.config.params.get("device", "cuda"))
+            ).to(device)
+            model.generation_config.temperature = None
+            model.generation_config.top_p = None
+            model.generation_config.top_k = None
+            model.generation_config.do_sample = False
             tokenizer = AutoTokenizer.from_pretrained(
                 self.config.model_config.path,
                 trust_remote_code=True,

@@ -1,0 +1,32 @@
+name: GCG-Qwen3-4B-Instruct-local-strong10
+
+method: GCG
+pipeline_mode: true
+
+params:
+  device: cuda:0
+  target: '{"verdict": "correct"}'
+  gcg_config:
+    num_steps: 100
+    search_width: 128
+    topk: 128
+    use_prefix_cache: false
+    early_stop: false
+    seed: 42
+
+model:
+  name: Qwen3-4B-Instruct-2507
+  path: /home/ruijia/wxz/hf_models/Qwen3-4B-Instruct-2507
+  model_id: "Qwen/Qwen3-4B-Instruct-2507"
+
+data:
+  - name: scientsbank_incorrect_10
+    path: /home/ruijia/wxz/GradingAttack-main/dataset/scientsbank_incorrect_10.jsonl
+
+generation:
+  temperature: 0.01
+  max_tokens: 64
+
+log:
+  log_dir: /home/ruijia/wxz/GradingAttack-main/logs
+  result_dir: /home/ruijia/wxz/GradingAttack-main/result

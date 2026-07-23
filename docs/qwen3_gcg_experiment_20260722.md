@@ -160,6 +160,27 @@ python main.py configs/GCG-Qwen3-4B-Instruct-local-twostage10.yaml
 - If a suffix flips the response to `correct`, the attack returns immediately.
 - In this verification run, non-transfer samples only ran cheap screening and did not enter strong GCG.
 
+### Transfer-Bank Heldout50 / Heldout100
+
+- Configs:
+  - `GCG-Qwen3-4B-Instruct-local-transferbank50-heldout.yaml`
+  - `GCG-Qwen3-4B-Instruct-local-transferbank100-heldout.yaml`
+- Dataset snapshots:
+  - `dataset/scientsbank_incorrect_heldout50_seed20260723.jsonl`
+  - `dataset/scientsbank_incorrect_heldout100_seed20260723.jsonl`
+- Suffix bank snapshot: `dataset/qwen3_gcg_success_suffix_bank_20260722.jsonl`
+- Both runs use the same fixed 9-suffix bank and `transfer_only: true`.
+- Heldout50:
+  - 50 rows total
+  - 43/50 attacked outputs were `correct`
+  - 38/50 rows flipped from non-`correct` to `correct`
+  - 45 rows were baseline non-`correct`; flip rate on those rows was 38/45 = 84.4%
+- Heldout100:
+  - 100 rows total
+  - 85/100 attacked outputs were `correct`
+  - 75/100 rows flipped from non-`correct` to `correct`
+  - 90 rows were baseline non-`correct`; flip rate on those rows was 75/90 = 83.3%
+
 ## Results
 
 Raw JSONL and metrics files copied for upload:
@@ -179,6 +200,10 @@ Raw JSONL and metrics files copied for upload:
 - `logs/gcg/qwen3_4b_instruct_2507/GCG-Qwen3-4B-Instruct-local-twostage10-target-correct_202607221754_metrics.json`
 - `logs/gcg/qwen3_4b_instruct_2507/GCG-Qwen3-4B-Instruct-local-transferbank10_202607221801.jsonl`
 - `logs/gcg/qwen3_4b_instruct_2507/GCG-Qwen3-4B-Instruct-local-transferbank10_202607221801_metrics.json`
+- `logs/gcg/qwen3_4b_instruct_2507/GCG-Qwen3-4B-Instruct-local-transferbank50-heldout_202607230700.jsonl`
+- `logs/gcg/qwen3_4b_instruct_2507/GCG-Qwen3-4B-Instruct-local-transferbank50-heldout_202607230700_metrics.json`
+- `logs/gcg/qwen3_4b_instruct_2507/GCG-Qwen3-4B-Instruct-local-transferbank100-heldout_202607230703.jsonl`
+- `logs/gcg/qwen3_4b_instruct_2507/GCG-Qwen3-4B-Instruct-local-transferbank100-heldout_202607230703_metrics.json`
 
 Attack success is counted only when the actual generated attacked response is parsed as `correct`, not when GCG loss alone is low.
 
@@ -192,6 +217,8 @@ Attack success is counted only when the actual generated attacked response is pa
 | twostage10-retry | 10 | 2 | 20.0% | Two seeds plus stalled-run stopping; did not improve ASR. |
 | twostage10-target-correct | 10 | 0 | 0.0% | Bare `correct` target produced very high losses and no flips. |
 | transferbank10 | 10 | 8 | 80.0% | Reused previously successful real GCG suffixes as a transfer suffix bank. |
+| transferbank50-heldout | 50 | 38 | 76.0% | Held-out run with fixed suffix bank; 84.4% on baseline non-`correct` rows. |
+| transferbank100-heldout | 100 | 75 | 75.0% | Held-out run with fixed suffix bank; 83.3% on baseline non-`correct` rows. |
 
 Successful strong10 samples:
 
@@ -235,3 +262,4 @@ Observed behavior:
 - Two-stage screening improves runtime by skipping samples whose cheap screening loss remains high, but the first `twostage10` setting traded off attack success: it reached 1/10 ASR versus 2/9 for the stronger partial run.
 - Transfer suffixes from previous successful GCG runs can be much more efficient than optimizing from scratch on every sample. On this 10-sample set, the suffix-bank run reached 8/10 ASR with actual generated-response verification.
 - The transfer-bank result uses suffixes discovered from earlier runs on this experiment set, so it should be reported as a suffix-bank/transfer attack rather than a fresh per-sample GCG-only result.
+- Held-out transfer-bank runs keep the 9-suffix bank fixed and evaluate on rows not used to discover those suffixes. The heldout50 and heldout100 results stayed close at 76.0% and 75.0% official ASR, which suggests the suffix bank has real transfer behavior rather than only fitting the first 10 rows.

@@ -311,6 +311,15 @@ class GradingDefensePipeline:
                 "transfer_suffix_count": len(transfer_suffixes),
                 "transfer_records": transfer_records,
             })
+            if two_stage.get("transfer_only", False):
+                meta.update({
+                    "gcg_mode": "transfer_suffix_bank",
+                    "verified_success": False,
+                    "skipped_gcg": True,
+                    "skip_reason": "transfer_only_no_suffix_success",
+                    "best_string": transfer_suffixes[-1],
+                })
+                return transfer_messages, transfer_resp, meta
 
         print("[pipeline] GCG screening stage...", flush=True)
         screen_result = nanogcg.run(

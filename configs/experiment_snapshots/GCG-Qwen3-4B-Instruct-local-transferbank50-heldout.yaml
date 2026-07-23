@@ -1,0 +1,45 @@
+name: GCG-Qwen3-4B-Instruct-local-transferbank50-heldout
+
+method: GCG
+pipeline_mode: true
+
+params:
+  device: cuda:0
+  target: '{"verdict": "correct"}'
+  gcg_config:
+    use_prefix_cache: false
+    early_stop: false
+    seed: 42
+  two_stage:
+    enabled: true
+    transfer_only: true
+    transfer_suffix_globs:
+      - /home/ruijia/wxz/GradingAttack-main/dataset/qwen3_gcg_success_suffix_bank_20260722.jsonl
+    transfer_suffix_limit: 9
+    screening_config:
+      num_steps: 20
+      search_width: 32
+      topk: 32
+    promote_max_loss: 0.0
+    strong_config:
+      search_width: 128
+      topk: 128
+    verify_every: 25
+    max_strong_steps: 0
+
+model:
+  name: Qwen3-4B-Instruct-2507
+  path: /home/ruijia/wxz/hf_models/Qwen3-4B-Instruct-2507
+  model_id: "Qwen/Qwen3-4B-Instruct-2507"
+
+data:
+  - name: scientsbank_incorrect_heldout50_seed20260723
+    path: /home/ruijia/wxz/GradingAttack-main/dataset/scientsbank_incorrect_heldout50_seed20260723.jsonl
+
+generation:
+  temperature: 0.01
+  max_tokens: 64
+
+log:
+  log_dir: /home/ruijia/wxz/GradingAttack-main/logs
+  result_dir: /home/ruijia/wxz/GradingAttack-main/result

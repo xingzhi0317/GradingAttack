@@ -320,6 +320,61 @@ select { font: inherit; }
   font-weight: 800;
 }
 
+.prompt-inspector {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+
+.prompt-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.prompt-head h2 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.prompt-tabs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.prompt-tab {
+  min-height: 32px;
+  padding: 6px 10px;
+  color: var(--muted);
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.prompt-tab.active {
+  color: #fff;
+  background: var(--text);
+  border-color: var(--text);
+}
+
+#prompt-view {
+  max-height: 250px;
+  margin: 0;
+  padding: 12px;
+  overflow: auto;
+  white-space: pre-wrap;
+  color: #1f2937;
+  background: #f8faf7;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
 .is-correct {
   color: #0f766e;
   background: var(--green-soft);
@@ -686,6 +741,11 @@ select { font: inherit; }
 
   .verdict-flow {
     grid-template-columns: 1fr;
+  }
+
+  .prompt-head {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
   .matrix-grid {

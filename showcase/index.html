@@ -3,21 +3,20 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>GradingAttack Attack & Defense Demo</title>
+  <title>GradingAttack Interactive Lab</title>
   <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
   <header class="topbar">
     <div class="wrap topbar-inner">
       <div>
-        <div class="eyebrow">GradingAttack</div>
-        <h1>LLM 自动评分攻击与防御实验展示</h1>
+        <div class="eyebrow">GradingAttack Interactive Lab</div>
+        <h1>LLM 评分攻击与防御实验台</h1>
       </div>
       <nav class="nav">
-        <a href="#attack">Attack</a>
-        <a href="#ablation">Ablation</a>
-        <a href="#defense">Defense</a>
-        <a href="#evidence">Evidence</a>
+        <a href="#lab">Lab</a>
+        <a href="#metrics">Metrics</a>
+        <a href="#methods">Methods</a>
       </nav>
     </div>
   </header>
@@ -26,160 +25,126 @@
     <section class="hero">
       <div class="wrap hero-grid">
         <div class="hero-copy">
-          <p class="kicker">White-box grading attack on LLM-as-a-Judger</p>
-          <h2>让错误学生答案被评分模型判成正确</h2>
+          <p class="kicker">White-box attack on LLM-as-a-Judger</p>
+          <h2>逐步观察一次评分攻击如何发生</h2>
           <p class="lead">
-            我们用 Qwen3-4B-Instruct-2507 作为短答案评分器，在 SciEntsBank 上测试 clean grading、GCG suffix 攻击、
-            suffix bank 迁移攻击，以及多种防御策略。页面中的互动组件展示攻击如何改变判分分布，以及防御方法主要拦截哪一类风险。
+            选择学生答案、攻击方式和防御策略，查看原始 grading prompt、注入 suffix 后的 prompt、模型输出变化，
+            以及防御如何改写、拦截或恢复评分。
           </p>
           <div class="hero-tags">
-            <span>GCG suffix optimization</span>
-            <span>ASR 75% with suffix bank</span>
-            <span>No-bank ASR 2%</span>
-            <span>Confusion matrix first</span>
+            <span>Original prompt</span>
+            <span>Attack suffix</span>
+            <span>Defense response</span>
+            <span>Verdict transition</span>
           </div>
         </div>
-
         <aside class="hero-panel attack-card">
-          <div class="panel-title">Core result</div>
+          <div class="panel-title">Observed result</div>
           <div class="hero-number">75%</div>
-          <p>在 heldout100 incorrect 样本上，transfer suffix bank 版本把 75/100 个原本非 correct 的评分翻成 correct。</p>
-          <div class="mini-list compact-list">
-            <div><span class="mini-label">Model</span><strong>Qwen3-4B-Instruct-2507</strong></div>
-            <div><span class="mini-label">Dataset</span><strong>SciEntsBank heldout100</strong></div>
-          </div>
+          <p>GCG + suffix bank 在 heldout100 上的 ASR；去掉 bank 后降到 2%。</p>
         </aside>
       </div>
     </section>
 
-    <section id="attack" class="band">
-      <div class="wrap">
-        <div class="section-head">
-          <h3>Attack Demo</h3>
-          <p>选择一个攻击配置，看同一批错误答案的评分分布如何变化。</p>
-        </div>
-
-        <div class="attack-lab">
-          <aside class="control-panel">
-            <label for="attack-select">Attack setting</label>
-            <select id="attack-select">
-              <option value="clean">Clean grading</option>
-              <option value="nobank">GCG without suffix bank</option>
-              <option value="banked" selected>GCG with suffix bank</option>
-              <option value="hybrid">Hybrid upper bound</option>
-            </select>
-            <div id="attack-summary" class="callout"></div>
-          </aside>
-
-          <div class="stage-panel">
-            <div class="pipeline">
-              <div class="node">Student answer</div>
-              <div class="arrow">+</div>
-              <div class="node highlight">Adversarial suffix</div>
-              <div class="arrow">→</div>
-              <div class="node">LLM judge</div>
-              <div class="arrow">→</div>
-              <div class="node danger">Changed verdict</div>
-            </div>
-            <div id="attack-bars" class="bars"></div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section id="ablation" class="band alt">
-      <div class="wrap">
-        <div class="section-head">
-          <h3>Suffix Bank Ablation</h3>
-          <p>同一模型、同一 heldout100 数据、同一 screening 配置，只改变是否使用迁移 suffix bank。</p>
-        </div>
-
-        <div class="toggle-row" role="tablist" aria-label="compare runs">
-          <button class="toggle active" data-view="banked" type="button">With bank</button>
-          <button class="toggle" data-view="nobank" type="button">No bank</button>
-        </div>
-
-        <div class="matrix-layout">
-          <article class="matrix-card">
-            <div class="matrix-head">
-              <h4 id="matrix-title">Attack confusion matrix</h4>
-              <span id="matrix-badge">banked</span>
-            </div>
-            <div id="matrix-table" class="matrix-table"></div>
-          </article>
-
-          <article class="matrix-card">
-            <div class="matrix-head">
-              <h4>Where incorrect answers go</h4>
-              <span id="matrix-legend">incorrect only</span>
-            </div>
-            <div id="matrix-bar" class="bars compact"></div>
-            <p id="matrix-comment" class="matrix-comment"></p>
-          </article>
-        </div>
-      </div>
-    </section>
-
-    <section id="defense" class="band">
-      <div class="wrap split defense-split">
-        <div>
-          <div class="section-head">
-            <h3>Defense Explorer</h3>
-            <p>这些防御已经在实验框架里实现。选择一种方法，看它拦截攻击的机制和代价。</p>
-          </div>
-          <div class="defense-tabs" role="tablist" aria-label="defense methods">
-            <button class="defense-tab active" data-defense="perplexity" type="button">PPL Filter</button>
-            <button class="defense-tab" data-defense="smooth" type="button">SmoothLLM</button>
-            <button class="defense-tab" data-defense="reminder" type="button">Self Reminder</button>
-            <button class="defense-tab" data-defense="paraphrase" type="button">Paraphrase</button>
-          </div>
-          <article id="defense-card" class="defense-card"></article>
-        </div>
-
-        <aside class="interactive-panel">
+    <section id="lab" class="band">
+      <div class="wrap lab-grid">
+        <aside class="control-panel">
           <div class="section-head tight">
-            <h3>Risk / Cost View</h3>
-            <p>用于展示防御取舍，不代表已完成的大规模防御结果。</p>
+            <h3>Controls</h3>
+            <p>切换实验条件，右侧会同步更新。</p>
           </div>
-          <div id="defense-meter" class="meter-stack"></div>
+
+          <label for="sample-select">Sample</label>
+          <select id="sample-select"></select>
+
+          <label for="attack-select">Attack</label>
+          <select id="attack-select"></select>
+
+          <label for="defense-select">Defense</label>
+          <select id="defense-select"></select>
+
+          <div id="sample-note" class="callout"></div>
+        </aside>
+
+        <section class="workspace">
+          <div class="panel sample-panel">
+            <div class="panel-head">
+              <h3>Student QA</h3>
+              <span id="ground-truth" class="status-chip"></span>
+            </div>
+            <div id="sample-view" class="sample-view"></div>
+          </div>
+
+          <div class="panel prompt-panel">
+            <div class="panel-head">
+              <h3>Prompt Inspector</h3>
+              <div class="segmented">
+                <button class="segment active" data-prompt="original" type="button">Original</button>
+                <button class="segment" data-prompt="attacked" type="button">Attacked</button>
+                <button class="segment" data-prompt="defended" type="button">Defended</button>
+              </div>
+            </div>
+            <pre id="prompt-view" class="prompt-view"></pre>
+          </div>
+        </section>
+
+        <aside class="result-rail">
+          <div class="panel transition-panel">
+            <h3>Verdict Flow</h3>
+            <div id="verdict-flow" class="verdict-flow"></div>
+          </div>
+
+          <div class="panel">
+            <h3>Model Outputs</h3>
+            <div id="output-view" class="output-view"></div>
+          </div>
+
+          <div class="panel">
+            <h3>Defense Effect</h3>
+            <div id="defense-effect" class="defense-effect"></div>
+          </div>
         </aside>
       </div>
     </section>
 
-    <section id="evidence" class="band alt">
-      <div class="wrap">
-        <div class="section-head">
-          <h3>Evidence Board</h3>
-          <p>组内同步时建议聚焦这些结果：baseline 稳定性、真实攻击翻转、suffix bank 消融和混淆矩阵。</p>
+    <section id="metrics" class="band alt">
+      <div class="wrap metrics-grid">
+        <div class="panel">
+          <div class="panel-head">
+            <h3>Attack Distribution</h3>
+            <span id="asr-chip" class="status-chip"></span>
+          </div>
+          <div id="attack-bars" class="bars"></div>
         </div>
-        <div class="grid cards-4" id="metric-grid"></div>
+        <div class="panel">
+          <div class="panel-head">
+            <h3>Confusion Matrix</h3>
+            <span>heldout100</span>
+          </div>
+          <div id="matrix-table" class="matrix-table"></div>
+        </div>
       </div>
     </section>
 
-    <section class="band">
-      <div class="wrap">
-        <div class="section-head">
-          <h3>Reproducibility</h3>
-          <p>保留最少必要入口，便于复现实验设置和核查结论。</p>
-        </div>
-        <div class="grid cards-3">
-          <a class="link-card" href="https://github.com/xingzhi0317/GradingAttack/blob/experiment/qwen3-gcg-logs-20260722/docs/qwen3_gcg_experiment_20260722.md">
-            <h4>Experiment log</h4>
-            <p>包含 baseline、GCG 设置、strong run 和 heldout100 ablation 记录。</p>
-          </a>
-          <a class="link-card" href="https://github.com/xingzhi0317/GradingAttack/blob/experiment/qwen3-gcg-logs-20260722/configs/GCG-Qwen3-4B-Instruct-local-transferbank100-heldout-nobank.yaml">
-            <h4>No-bank config</h4>
-            <p>去掉 suffix bank 的关键对照配置。</p>
-          </a>
-          <a class="link-card" href="https://github.com/xingzhi0317/GradingAttack/blob/experiment/qwen3-gcg-logs-20260722/eval/metrics.py">
-            <h4>Metrics code</h4>
-            <p>ASR、QWK、CAS 和 confusion matrix 的计算口径。</p>
-          </a>
-        </div>
+    <section id="methods" class="band">
+      <div class="wrap method-grid">
+        <article class="method-card">
+          <h3>GCG Attack</h3>
+          <p>通过白盒梯度优化 suffix，使评分模型更倾向输出目标 verdict。真实成功必须以 greedy generation 的 attacked output 为准。</p>
+        </article>
+        <article class="method-card">
+          <h3>Suffix Bank</h3>
+          <p>把已成功的 suffix 迁移到 heldout 样本。当前结果表明它是 ASR 从 2% 升到 75% 的关键因素。</p>
+        </article>
+        <article class="method-card">
+          <h3>Defense Layer</h3>
+          <p>Self Reminder、PPL Filter、SmoothLLM 和 Paraphrase 分别对应 prompt hardening、检测、投票与改写。</p>
+        </article>
       </div>
     </section>
   </main>
 
+  <script src="./data.js"></script>
   <script src="./app.js"></script>
 </body>
 </html>

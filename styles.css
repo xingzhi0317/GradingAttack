@@ -25,6 +25,7 @@ body {
 }
 a { color: inherit; text-decoration: none; }
 button { font: inherit; }
+select { font: inherit; }
 
 .wrap {
   width: min(1040px, calc(100% - 32px));
@@ -105,7 +106,10 @@ button { font: inherit; }
 .chart-card,
 .matrix-card,
 .info-card,
-.link-card {
+.link-card,
+.control-card,
+.sample-card,
+.effect-card {
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: var(--radius);
@@ -185,6 +189,173 @@ button { font: inherit; }
 
 .band {
   padding: 18px 0;
+}
+
+.interactive-main {
+  padding: 26px 0 34px;
+}
+
+.interaction-shell {
+  display: grid;
+  gap: 18px;
+}
+
+.interaction-intro {
+  max-width: 760px;
+}
+
+.interaction-intro h1 {
+  margin: 0;
+  font-size: 38px;
+  line-height: 1.08;
+}
+
+.interaction-intro p:not(.kicker) {
+  margin: 12px 0 0;
+  color: var(--muted);
+}
+
+.lab-panel {
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr) 300px;
+  gap: 16px;
+  align-items: stretch;
+}
+
+.control-card,
+.sample-card,
+.effect-card {
+  padding: 18px;
+}
+
+.control-card label {
+  display: block;
+  margin: 0 0 8px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.control-card label + select {
+  margin-bottom: 16px;
+}
+
+.control-card select {
+  width: 100%;
+  min-height: 42px;
+  padding: 9px 10px;
+  color: var(--text);
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.mini-note {
+  display: grid;
+  gap: 4px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
+.mini-note strong {
+  font-size: 24px;
+}
+
+.mini-note span {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.sample-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 14px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.sample-card h2,
+.effect-card h2 {
+  margin: 0 0 10px;
+  font-size: 21px;
+  line-height: 1.25;
+}
+
+.sample-card p,
+.effect-card p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.verdict-flow {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.verdict-step {
+  display: grid;
+  gap: 6px;
+  padding: 12px;
+  background: #f8faf7;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.verdict-step span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.verdict-step strong,
+.result-chip {
+  width: fit-content;
+  border-radius: 999px;
+  padding: 5px 9px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.is-correct {
+  color: #0f766e;
+  background: var(--green-soft);
+}
+
+.is-incorrect {
+  color: #9f3a2d;
+  background: var(--red-soft);
+}
+
+.is-contradictory {
+  color: var(--amber);
+  background: var(--amber-soft);
+}
+
+.is-rejected,
+.is-recovered {
+  color: #334155;
+  background: #e2e8f0;
+}
+
+.effect-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.effect-card pre {
+  margin: auto 0 0;
+  padding: 12px;
+  overflow: auto;
+  color: #1f2937;
+  background: #f8faf7;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  font-size: 13px;
 }
 
 .band.alt {
@@ -459,6 +630,7 @@ button { font: inherit; }
 @media (max-width: 980px) {
   .matrix-layout,
   .result-layout,
+  .lab-panel,
   .cards-4,
   .cards-3 {
     grid-template-columns: 1fr;
@@ -476,6 +648,10 @@ button { font: inherit; }
   .page-hero h1 {
     font-size: 38px;
     max-width: none;
+  }
+
+  .interaction-intro h1 {
+    font-size: 34px;
   }
 
   .chart-head {
@@ -502,6 +678,14 @@ button { font: inherit; }
 
   .page-hero h1 {
     font-size: 34px;
+  }
+
+  .interaction-intro h1 {
+    font-size: 30px;
+  }
+
+  .verdict-flow {
+    grid-template-columns: 1fr;
   }
 
   .matrix-grid {

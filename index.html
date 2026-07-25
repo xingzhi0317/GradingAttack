@@ -11,58 +11,66 @@
     <div class="wrap topbar-inner">
       <a class="brand-block" href="./index.html">
         <span class="eyebrow">GradingAttack</span>
-        <span class="brand-title">LLM 自动评分攻防</span>
+        <span class="brand-title">交互实验</span>
       </a>
       <nav class="nav">
         <a class="active" href="./index.html">首页</a>
         <a href="./attacks.html">攻击</a>
         <a href="./defenses.html">防御</a>
         <a href="./metrics.html">结果</a>
+        <a href="./data.html">数据说明</a>
         <a href="./code.html">代码</a>
       </nav>
     </div>
   </header>
 
-  <main>
-    <section class="page-hero">
-      <div class="wrap narrow">
-        <p class="kicker">Short-answer grading security</p>
-        <h1>GradingAttack</h1>
-        <p class="lead">
-          一个面向 LLM-as-a-Judger 的自动评分安全实验仓库。项目在 SciEntsBank
-          短答案评分任务上比较 GCG 攻击、transfer suffix bank 和多种防御策略。
+  <main class="interactive-main">
+    <section class="interaction-shell wrap">
+      <div class="interaction-intro">
+        <p class="kicker">Interactive demo</p>
+        <h1>选择攻击和防御，观察评分变化</h1>
+        <p>
+          默认样本是一条真实标签为 incorrect 的短答案。你可以切换攻击和防御，
+          看 LLM judge 的 verdict 如何从 clean output 变到 attacked / defended output。
         </p>
-        <div class="hero-actions">
-          <a class="primary-link" href="./metrics.html">查看结果</a>
-          <a class="secondary-link" href="https://github.com/xingzhi0317/GradingAttack">GitHub</a>
-        </div>
       </div>
-    </section>
 
-    <section class="band">
-      <div class="wrap cards-4">
-        <a class="link-card" href="./attacks.html">
-          <span class="metric-tag">Attack</span>
-          <h2>攻击方法</h2>
-          <p>GCG、suffix bank 和 hybrid injection 的简要说明。</p>
-        </a>
-        <a class="link-card" href="./defenses.html">
-          <span class="metric-tag">Defense</span>
-          <h2>防御方法</h2>
-          <p>Self Reminder、PPL Filter、SmoothLLM 和 Paraphrase。</p>
-        </a>
-        <a class="link-card" href="./metrics.html">
-          <span class="metric-tag">Result</span>
-          <h2>实验结果</h2>
-          <p>核心 ASR、baseline 和 bank/no-bank 对照。</p>
-        </a>
-        <a class="link-card" href="./code.html">
-          <span class="metric-tag">Code</span>
-          <h2>代码入口</h2>
-          <p>仓库文件、实验日志和配置入口。</p>
-        </a>
+      <div class="lab-panel">
+        <aside class="control-card">
+          <label for="attack-select">Attack</label>
+          <select id="attack-select"></select>
+
+          <label for="defense-select">Defense</label>
+          <select id="defense-select"></select>
+
+          <div class="mini-note">
+            <strong id="asr-value">ASR 75%</strong>
+            <span id="asr-note">transfer suffix bank enabled</span>
+          </div>
+        </aside>
+
+        <section class="sample-card">
+          <div class="sample-head">
+            <span class="metric-tag">SciEntsBank sample</span>
+            <strong>Ground truth: incorrect</strong>
+          </div>
+          <h2>Why did the same apple weigh 35 and 60 marbles?</h2>
+          <p>
+            Student answer: “Maybe the balance was a little off.”
+          </p>
+          <div id="verdict-flow" class="verdict-flow"></div>
+        </section>
+
+        <aside class="effect-card">
+          <span id="result-chip" class="result-chip">attack succeeds</span>
+          <h2 id="result-title">Banked GCG flips the judge</h2>
+          <p id="result-copy"></p>
+          <pre id="output-view"></pre>
+        </aside>
       </div>
     </section>
   </main>
+
+  <script src="./app.js"></script>
 </body>
 </html>

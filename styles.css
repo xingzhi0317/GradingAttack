@@ -109,7 +109,8 @@ select { font: inherit; }
 .link-card,
 .control-card,
 .sample-card,
-.effect-card {
+.effect-card,
+.prompt-card {
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: var(--radius);
@@ -326,17 +327,21 @@ select { font: inherit; }
   border-top: 1px solid var(--line);
 }
 
+.prompt-card {
+  padding: 18px;
+}
+
 .prompt-head {
   display: flex;
   justify-content: space-between;
   gap: 12px;
-  align-items: center;
+  align-items: flex-start;
   margin-bottom: 10px;
 }
 
 .prompt-head h2 {
-  margin: 0;
-  font-size: 18px;
+  margin: 8px 0 0;
+  font-size: 22px;
 }
 
 .prompt-tabs {
@@ -362,7 +367,7 @@ select { font: inherit; }
 }
 
 #prompt-view {
-  max-height: 250px;
+  max-height: 360px;
   margin: 0;
   padding: 12px;
   overflow: auto;

@@ -130,6 +130,32 @@ Successful strong10 samples:
 
 The first strong10 success is the same sample as the strong1 run.
 
+### Heldout100 suffix-bank ablation
+
+To isolate the effect of the suffix bank, I ran the same heldout100 setup with the transfer bank removed.
+
+- Banked run: `GCG-Qwen3-4B-Instruct-local-transferbank100-heldout`
+- No-bank run: `GCG-Qwen3-4B-Instruct-local-transferbank100-heldout-nobank`
+
+Both runs use the same model, dataset, and screening settings; the only change is whether transfer suffixes are injected.
+
+| Run | ASR | Attack CM row for true `incorrect` |
+| --- | ---: | --- |
+| banked | 0.75 | `[85, 12, 3]` |
+| no-bank | 0.02 | `[12, 46, 42]` |
+
+Interpretation:
+
+- The suffix bank is the main driver of attack success here.
+- Without it, most samples stay `incorrect` or move to `contradictory`, but almost none flip to `correct`.
+- For this heldout100 slice, the full attack confusion matrix is still useful because it shows where the attack mass goes, not just how often it reaches `correct`.
+
+Artifacts:
+
+- `configs/GCG-Qwen3-4B-Instruct-local-transferbank100-heldout-nobank.yaml`
+- `result/GCG/Qwen3-4B-Instruct-2507/GCG-Qwen3-4B-Instruct-local-transferbank100-heldout-nobank_202607250702.jsonl`
+- `result/GCG/Qwen3-4B-Instruct-2507/GCG-Qwen3-4B-Instruct-local-transferbank100-heldout-nobank_202607250702_metrics.json`
+
 ## Runtime Notes
 
 The smoke run is quick because it uses only 20 optimization steps with small search settings. The strong GCG settings are much slower because each sample performs 100 white-box suffix optimization steps with search width 128 and top-k 128.

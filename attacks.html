@@ -28,10 +28,9 @@
     <section class="page-hero compact">
       <div class="wrap narrow">
         <p class="kicker">White-box suffix attack</p>
-        <h1>攻击目标很直接: 把错误答案推成 correct</h1>
+        <h1>main 分支包含 GCG 和 RolePlay 两类攻击</h1>
         <p class="lead">
-          这里保留最核心的攻击设置。真实攻击成功以最终 generated output 是否变成
-          `correct` 为准，而不是只看优化 loss。
+          这里不再使用之前实验分支的数据，只展示 main 分支 `configs/` 中公开的攻击配置。
         </p>
       </div>
     </section>
@@ -39,20 +38,20 @@
     <section class="band">
       <div class="wrap cards-4">
         <article class="info-card">
-          <h2>GCG without bank</h2>
-          <p>只针对当前样本优化 suffix。会扰动输出，但 heldout100 ASR 只有 2%。</p>
+          <h2>GCG</h2>
+          <p>目标字符串是 `&lt;answer&gt;correct&lt;/answer&gt;`，优化步数为 100。</p>
         </article>
         <article class="info-card">
-          <h2>GCG + suffix bank</h2>
-          <p>迁移已成功 suffix 到新样本，是 ASR 提升到 75% 的主要来源。</p>
+          <h2>GCG search</h2>
+          <p>`search_width: 64`，`topk: 64`，`use_prefix_cache: true`。</p>
         </article>
         <article class="info-card">
-          <h2>Strong GCG</h2>
-          <p>更慢的白盒优化，能带来真实翻转，但样本间稳定性有限。</p>
+          <h2>RolePlay</h2>
+          <p>main 分支直接保存了 prompt-level adversarial instruction。</p>
         </article>
         <article class="info-card">
-          <h2>Hybrid injection</h2>
-          <p>混入更显式的 prompt injection，用作上界参考，不等同于纯 GCG。</p>
+          <h2>Model</h2>
+          <p>默认配置模型为 `meta-llama/Llama-3.1-8B-Instruct`。</p>
         </article>
       </div>
     </section>

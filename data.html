@@ -27,10 +27,11 @@
   <main>
     <section class="page-hero compact">
       <div class="wrap narrow">
-        <p class="kicker">Evaluation notes</p>
-        <h1>总体数据和准确性口径</h1>
+        <p class="kicker">Main branch data notes</p>
+        <h1>这里说明 main 分支数据来源</h1>
         <p class="lead">
-          这一页集中说明页面中数字的来源、统计口径和限制，避免把 demo 里的交互效果误读成完整评估。
+          展示页现在只使用 `main` 分支公开文件。main 中没有提交实验 logs/result，
+          所以不再展示之前的总体准确率或 ASR 数字。
         </p>
       </div>
     </section>
@@ -38,16 +39,16 @@
     <section class="band">
       <div class="wrap cards-3">
         <article class="info-card">
-          <h2>Baseline validity</h2>
-          <p>Old test_ua 三分类: Valid 529/540，QWK 0.6812，Accuracy 0.6427。</p>
+          <h2>README</h2>
+          <p>main README 将项目描述为 LLM-based ASAG 的 unified adversarial evaluation framework。</p>
         </article>
         <article class="info-card">
-          <h2>Attack success</h2>
-          <p>ASR 以最终 generated attacked output 是否解析为 correct 为准，不只看 loss。</p>
+          <h2>Datasets</h2>
+          <p>main 公开了 `gaokao-2023`、`gsm8k`、`math`、`math23k` 和 `scientsbank`。</p>
         </article>
         <article class="info-card">
-          <h2>Heldout100</h2>
-          <p>bank/no-bank 对照使用同一模型、同一数据和同一 screening 设置，只改变 suffix bank。</p>
+          <h2>SciEntsBank</h2>
+          <p>`dataset/scientsbank.jsonl` 在 main 中共有 5000 行，首页 demo 样本来自其中一条 incorrect 记录。</p>
         </article>
       </div>
     </section>
@@ -55,16 +56,16 @@
     <section class="band alt">
       <div class="wrap cards-3">
         <article class="info-card">
-          <h2>Binary baseline</h2>
-          <p>scientsbank.jsonl: 5000/5000 valid，Accuracy 0.7608，QWK 0.5066。</p>
+          <h2>GCG config</h2>
+          <p>目标是 `&lt;answer&gt;correct&lt;/answer&gt;`，`num_steps: 100`，`search_width: 64`，`topk: 64`。</p>
         </article>
         <article class="info-card">
-          <h2>Upper bound</h2>
-          <p>Hybrid injection 是更强的上界参考，不等同于纯 GCG 结果。</p>
+          <h2>RolePlay config</h2>
+          <p>main 中直接保存了一段 role-playing adversarial prompt，用于 prompt-level attack。</p>
         </article>
         <article class="info-card">
-          <h2>Demo scope</h2>
-          <p>首页交互区展示的是代表性样本，用来解释机制，不替代总体统计。</p>
+          <h2>Result scope</h2>
+          <p>main 没有包含 logs/result 文件，页面不会声称 main 分支中不存在的评估结果。</p>
         </article>
       </div>
     </section>

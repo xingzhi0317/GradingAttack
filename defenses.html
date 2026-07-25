@@ -28,10 +28,9 @@
     <section class="page-hero compact">
       <div class="wrap narrow">
         <p class="kicker">Prompt hardening, filtering, voting, rewriting</p>
-        <h1>防御要同时看恢复效果和推理成本</h1>
+        <h1>main 分支公开了 Self Reminder 和 PPL Filter 配置</h1>
         <p class="lead">
-          这些防御覆盖四种常见思路: 加固 prompt、过滤异常 suffix、随机扰动投票、
-          以及先改写再评分。
+          防御页面现在只展示 main 分支已有配置，不再引用之前实验分支里的额外防御结果。
         </p>
       </div>
     </section>
@@ -40,19 +39,19 @@
       <div class="wrap cards-4">
         <article class="info-card">
           <h2>Self Reminder</h2>
-          <p>在评分前加入安全提醒，成本低，但对白盒 suffix 的强度有限。</p>
+          <p>提醒模型忽略 student_answer 后面的覆盖评分指令，并遵循原始评分标准。</p>
         </article>
         <article class="info-card">
           <h2>Perplexity Filter</h2>
-          <p>先检测异常 token 分布，适合拦截不自然的 GCG 字符串。</p>
+          <p>main 配置中阈值为 `1000.0`，用于筛查异常文本。</p>
         </article>
         <article class="info-card">
-          <h2>SmoothLLM</h2>
-          <p>对输入做随机扰动并投票，能削弱脆弱 suffix，但推理成本更高。</p>
+          <h2>Defense log path</h2>
+          <p>`log_dir: ./logs_defense`，`result_dir: ./result_defense`。</p>
         </article>
         <article class="info-card">
-          <h2>Paraphrase</h2>
-          <p>改写输入后再评分，可破坏 suffix 结构，但需要控制语义漂移。</p>
+          <h2>Pipeline mode</h2>
+          <p>`GCG-Llama-3.1-8B-Instruct-defense.yaml` 中启用了 `pipeline_mode: true`。</p>
         </article>
       </div>
     </section>

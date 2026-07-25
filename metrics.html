@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Results - GradingAttack</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="wrap topbar-inner">
+      <a class="brand-block" href="./index.html">
+        <span class="eyebrow">GradingAttack</span>
+        <span class="brand-title">实验结果</span>
+      </a>
+      <nav class="nav">
+        <a href="./index.html">首页</a>
+        <a href="./attacks.html">攻击</a>
+        <a href="./defenses.html">防御</a>
+        <a class="active" href="./metrics.html">结果</a>
+        <a href="./code.html">代码</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="page-hero compact">
+      <div class="wrap narrow">
+        <p class="kicker">ASR and ablation</p>
+        <h1>Suffix bank 是当前攻击成功的主因</h1>
+        <p class="lead">
+          最关键的对照是 heldout100: 使用 transfer suffix bank 后 ASR 为 75%，
+          去掉 bank 后 ASR 降到 2%。
+        </p>
+      </div>
+    </section>
+
+    <section class="band">
+      <div class="wrap result-layout">
+        <article class="chart-card">
+          <h2>Heldout100 ASR</h2>
+          <div class="bars">
+            <div class="bar-row">
+              <div class="bar-label"><strong>GCG + suffix bank</strong><span>75%</span></div>
+              <div class="bar-track"><div class="bar-seg c-green" style="width:75%"></div></div>
+            </div>
+            <div class="bar-row">
+              <div class="bar-label"><strong>GCG without bank</strong><span>2%</span></div>
+              <div class="bar-track"><div class="bar-seg c-red" style="width:2%"></div></div>
+            </div>
+            <div class="bar-row">
+              <div class="bar-label"><strong>Hybrid upper bound</strong><span>90%</span></div>
+              <div class="bar-track"><div class="bar-seg c-slate" style="width:90%"></div></div>
+            </div>
+          </div>
+        </article>
+
+        <article class="chart-card">
+          <h2>True incorrect row</h2>
+          <div class="matrix-grid">
+            <div class="matrix-cell matrix-headcell">Run</div>
+            <div class="matrix-cell matrix-headcell">correct</div>
+            <div class="matrix-cell matrix-headcell">contradictory</div>
+            <div class="matrix-cell matrix-headcell">incorrect</div>
+            <div class="matrix-cell matrix-rowhead">banked</div>
+            <div class="matrix-cell"><strong>85</strong></div>
+            <div class="matrix-cell">12</div>
+            <div class="matrix-cell">3</div>
+            <div class="matrix-cell matrix-rowhead">no-bank</div>
+            <div class="matrix-cell">12</div>
+            <div class="matrix-cell"><strong>46</strong></div>
+            <div class="matrix-cell">42</div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="band alt">
+      <div class="wrap cards-3">
+        <article class="info-card">
+          <h2>Baseline</h2>
+          <p>Old test_ua 三分类: Valid 529/540，QWK 0.6812，Accuracy 0.6427。</p>
+        </article>
+        <article class="info-card">
+          <h2>Binary baseline</h2>
+          <p>scientsbank.jsonl: 5000/5000 valid，Accuracy 0.7608，QWK 0.5066。</p>
+        </article>
+        <article class="info-card">
+          <h2>Evaluation rule</h2>
+          <p>攻击成功以最终 attacked output 解析为 correct 为准。</p>
+        </article>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

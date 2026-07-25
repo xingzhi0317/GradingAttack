@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Attacks - GradingAttack</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="wrap topbar-inner">
+      <a class="brand-block" href="./index.html">
+        <span class="eyebrow">GradingAttack</span>
+        <span class="brand-title">攻击方法</span>
+      </a>
+      <nav class="nav">
+        <a href="./index.html">首页</a>
+        <a class="active" href="./attacks.html">攻击</a>
+        <a href="./defenses.html">防御</a>
+        <a href="./metrics.html">结果</a>
+        <a href="./code.html">代码</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="page-hero compact">
+      <div class="wrap narrow">
+        <p class="kicker">White-box suffix attack</p>
+        <h1>攻击目标很直接: 把错误答案推成 correct</h1>
+        <p class="lead">
+          这里保留最核心的攻击设置。真实攻击成功以最终 generated output 是否变成
+          `correct` 为准，而不是只看优化 loss。
+        </p>
+      </div>
+    </section>
+
+    <section class="band">
+      <div class="wrap cards-4">
+        <article class="info-card">
+          <h2>GCG without bank</h2>
+          <p>只针对当前样本优化 suffix。会扰动输出，但 heldout100 ASR 只有 2%。</p>
+        </article>
+        <article class="info-card">
+          <h2>GCG + suffix bank</h2>
+          <p>迁移已成功 suffix 到新样本，是 ASR 提升到 75% 的主要来源。</p>
+        </article>
+        <article class="info-card">
+          <h2>Strong GCG</h2>
+          <p>更慢的白盒优化，能带来真实翻转，但样本间稳定性有限。</p>
+        </article>
+        <article class="info-card">
+          <h2>Hybrid injection</h2>
+          <p>混入更显式的 prompt injection，用作上界参考，不等同于纯 GCG。</p>
+        </article>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

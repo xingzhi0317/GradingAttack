@@ -9,126 +9,60 @@
 <body>
   <header class="topbar">
     <div class="wrap topbar-inner">
-      <div class="brand-block">
-        <div class="eyebrow">GradingAttack</div>
-        <h1>LLM 自动评分攻防</h1>
-      </div>
+      <a class="brand-block" href="./index.html">
+        <span class="eyebrow">GradingAttack</span>
+        <span class="brand-title">LLM 自动评分攻防</span>
+      </a>
       <nav class="nav">
-        <a href="#overview">Overview</a>
-        <a href="#metrics">Results</a>
-        <a href="#comparison">Ablation</a>
-        <a href="#artifacts">Code</a>
+        <a class="active" href="./index.html">首页</a>
+        <a href="./attacks.html">攻击</a>
+        <a href="./defenses.html">防御</a>
+        <a href="./metrics.html">结果</a>
+        <a href="./code.html">代码</a>
       </nav>
     </div>
   </header>
 
   <main>
-    <section class="hero">
-      <div class="wrap hero-grid">
-        <div class="hero-copy">
-          <p class="kicker">Short-answer grading security</p>
-          <h2>GradingAttack</h2>
-          <p class="lead">
-            一个面向 LLM-as-a-Judger 的自动评分安全实验仓库。项目在 SciEntsBank
-            短答案评分任务上比较 GCG 攻击、transfer suffix bank 和多种防御策略。
-          </p>
-          <div class="hero-actions">
-            <a class="primary-link" href="#metrics">View results</a>
-            <a class="secondary-link" href="https://github.com/xingzhi0317/GradingAttack">GitHub</a>
-          </div>
-        </div>
-
-        <aside class="hero-panel">
-          <div class="panel-title">Key Finding</div>
-          <p class="big-number">75%</p>
-          <p>Heldout100 ASR with transfer suffix bank. The same setup without the bank drops to 2%.</p>
-        </aside>
-      </div>
-    </section>
-
-    <section id="overview" class="band">
-      <div class="wrap">
-        <div class="section-head">
-          <h3>Overview</h3>
-          <p>Clean baseline, white-box suffix attack, transfer ablation, and defense modules in one compact pipeline.</p>
-        </div>
-        <div class="grid cards-4" id="metric-grid"></div>
-      </div>
-    </section>
-
-    <section id="metrics" class="band">
-      <div class="wrap">
-        <div class="section-head">
-          <h3>Key Results</h3>
-          <p>The main result is simple: transfer suffix bank is the dominant factor behind successful flips.</p>
-        </div>
-
-        <div class="chart-card">
-          <div class="chart-head">
-            <h4>Heldout100 ASR comparison</h4>
-            <p>Hybrid is included only as an upper-bound reference.</p>
-          </div>
-          <div id="asr-bars" class="bars"></div>
+    <section class="page-hero">
+      <div class="wrap narrow">
+        <p class="kicker">Short-answer grading security</p>
+        <h1>GradingAttack</h1>
+        <p class="lead">
+          一个面向 LLM-as-a-Judger 的自动评分安全实验仓库。项目在 SciEntsBank
+          短答案评分任务上比较 GCG 攻击、transfer suffix bank 和多种防御策略。
+        </p>
+        <div class="hero-actions">
+          <a class="primary-link" href="./metrics.html">查看结果</a>
+          <a class="secondary-link" href="https://github.com/xingzhi0317/GradingAttack">GitHub</a>
         </div>
       </div>
     </section>
 
-    <section id="comparison" class="band">
-      <div class="wrap">
-        <div class="section-head">
-          <h3>Bank vs No-Bank</h3>
-          <p>Same model, same data, same screening setup. Only the transfer suffix bank changes.</p>
-        </div>
-
-        <div class="toggle-row" role="tablist" aria-label="compare runs">
-          <button class="toggle active" data-view="banked" type="button">Banked</button>
-          <button class="toggle" data-view="nobank" type="button">No-bank</button>
-        </div>
-
-        <div class="matrix-layout">
-          <article class="matrix-card">
-            <div class="matrix-head">
-              <h4 id="matrix-title">Attack confusion matrix</h4>
-              <span id="matrix-badge">banked</span>
-            </div>
-            <div id="matrix-table" class="matrix-table"></div>
-          </article>
-
-          <article class="matrix-card">
-            <div class="matrix-head">
-              <h4>Distribution on true incorrect</h4>
-              <span id="matrix-legend">incorrect only</span>
-            </div>
-            <div id="matrix-bar" class="bars compact"></div>
-          </article>
-        </div>
-      </div>
-    </section>
-
-    <section id="artifacts" class="band alt">
-      <div class="wrap">
-        <div class="section-head">
-          <h3>Repository Map</h3>
-          <p>Core files for reading, reproducing, and extending the experiment.</p>
-        </div>
-        <div class="grid cards-3">
-          <a class="link-card" href="https://github.com/xingzhi0317/GradingAttack/blob/experiment/qwen3-gcg-logs-20260722/README.md">
-            <h4>README</h4>
-            <p>Project structure and command entry points.</p>
-          </a>
-          <a class="link-card" href="https://github.com/xingzhi0317/GradingAttack/blob/experiment/qwen3-gcg-logs-20260722/docs/qwen3_gcg_experiment_20260722.md">
-            <h4>Experiment log</h4>
-            <p>Qwen3 GCG notes and heldout100 ablation.</p>
-          </a>
-          <a class="link-card" href="https://github.com/xingzhi0317/GradingAttack/blob/experiment/qwen3-gcg-logs-20260722/configs/GCG-Qwen3-4B-Instruct-local-transferbank100-heldout-nobank.yaml">
-            <h4>No-bank config</h4>
-            <p>Ablation config with suffix bank removed.</p>
-          </a>
-        </div>
+    <section class="band">
+      <div class="wrap cards-4">
+        <a class="link-card" href="./attacks.html">
+          <span class="metric-tag">Attack</span>
+          <h2>攻击方法</h2>
+          <p>GCG、suffix bank 和 hybrid injection 的简要说明。</p>
+        </a>
+        <a class="link-card" href="./defenses.html">
+          <span class="metric-tag">Defense</span>
+          <h2>防御方法</h2>
+          <p>Self Reminder、PPL Filter、SmoothLLM 和 Paraphrase。</p>
+        </a>
+        <a class="link-card" href="./metrics.html">
+          <span class="metric-tag">Result</span>
+          <h2>实验结果</h2>
+          <p>核心 ASR、baseline 和 bank/no-bank 对照。</p>
+        </a>
+        <a class="link-card" href="./code.html">
+          <span class="metric-tag">Code</span>
+          <h2>代码入口</h2>
+          <p>仓库文件、实验日志和配置入口。</p>
+        </a>
       </div>
     </section>
   </main>
-
-  <script src="./app.js"></script>
 </body>
 </html>

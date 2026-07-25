@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GradingAttack Project Showcase</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="wrap topbar-inner">
+      <div>
+        <div class="eyebrow">GradingAttack</div>
+        <h1>白盒 LLM 评分攻击与防御展示页</h1>
+      </div>
+      <nav class="nav">
+        <a href="#overview">Overview</a>
+        <a href="#metrics">Metrics</a>
+        <a href="#comparison">Comparison</a>
+        <a href="#artifacts">Artifacts</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap hero-grid">
+        <div class="hero-copy">
+          <p class="kicker">基于当前 GitHub 仓库内容整理</p>
+          <h2>一个面向 SciEntsBank 的 LLM-as-a-Judger 攻防实验仓库</h2>
+          <p class="lead">
+            这个项目围绕 Qwen3-4B-Instruct-2507 构建了 baseline、GCG 白盒攻击、RolePlay 攻击与多种防御，
+            并记录了 heldout100 的 suffix-bank ablation。
+          </p>
+          <div class="hero-tags">
+            <span>QWK / Accuracy</span>
+            <span>ASR / CAS</span>
+            <span>Confusion Matrix</span>
+            <span>Heldout100</span>
+          </div>
+        </div>
+
+        <aside class="hero-panel">
+          <div class="panel-title">Current snapshot</div>
+          <div class="mini-list">
+            <div>
+              <span class="mini-label">Judge</span>
+              <strong>Qwen3-4B-Instruct-2507</strong>
+            </div>
+            <div>
+              <span class="mini-label">Attack</span>
+              <strong>GCG (nanogcg)</strong>
+            </div>
+            <div>
+              <span class="mini-label">Key finding</span>
+              <strong>Suffix bank drives success</strong>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section id="overview" class="band">
+      <div class="wrap">
+        <div class="section-head">
+          <h3>Project Overview</h3>
+          <p>仓库里已经有 baseline、攻击、防御、实验日志和数据集快照，适合直接做组内展示。</p>
+        </div>
+        <div class="grid cards-4" id="metric-grid"></div>
+      </div>
+    </section>
+
+    <section class="band alt">
+      <div class="wrap split">
+        <div>
+          <div class="section-head">
+            <h3>Method Stack</h3>
+            <p>从 clean baseline 到白盒攻击，再到防御评估，链路是完整的。</p>
+          </div>
+          <div class="stack">
+            <article class="info-card">
+              <h4>Baseline</h4>
+              <p>支持 notebook-style 三分类和 logprob 二分类两条口径，便于和旧实验对齐。</p>
+            </article>
+            <article class="info-card">
+              <h4>GCG</h4>
+              <p>使用 nanogcg 做 token-level white-box suffix 优化，Qwen3 路径里关闭了 prefix cache。</p>
+            </article>
+            <article class="info-card">
+              <h4>Defense</h4>
+              <p>仓库里有 PerplexityFilter、SmoothLLM、SelfReminder 和 ParaphraseDefense。</p>
+            </article>
+          </div>
+        </div>
+
+        <div class="glossary">
+          <div class="section-head">
+            <h3>Metric Glossary</h3>
+          </div>
+          <div class="metric-legend">
+            <div><strong>QWK</strong><span>Quadratic Weighted Kappa，衡量评分一致性。</span></div>
+            <div><strong>Accuracy</strong><span>有效样本上的分类正确率。</span></div>
+            <div><strong>ASR</strong><span>incorrect 样本被攻成 correct 的比例。</span></div>
+            <div><strong>Confusion Matrix</strong><span>看攻击把错误质量推向了哪一类。</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="metrics" class="band">
+      <div class="wrap">
+        <div class="section-head">
+          <h3>Key Results</h3>
+          <p>这组结果最能说明 suffix bank 的作用。</p>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-head">
+            <h4>Heldout100 ASR comparison</h4>
+            <p>纯 GCG 对照，hybrid 版本单独标注为 upper bound。</p>
+          </div>
+          <div id="asr-bars" class="bars"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="comparison" class="band alt">
+      <div class="wrap">
+        <div class="section-head">
+          <h3>Bank vs No-Bank</h3>
+          <p>同一模型、同一数据、同一 screening 配置，仅去掉 transfer suffix bank。</p>
+        </div>
+
+        <div class="toggle-row" role="tablist" aria-label="compare runs">
+          <button class="toggle active" data-view="banked" type="button">Banked</button>
+          <button class="toggle" data-view="nobank" type="button">No-bank</button>
+        </div>
+
+        <div class="matrix-layout">
+          <article class="matrix-card">
+            <div class="matrix-head">
+              <h4 id="matrix-title">Attack confusion matrix</h4>
+              <span id="matrix-badge">banked</span>
+            </div>
+            <div id="matrix-table" class="matrix-table"></div>
+          </article>
+
+          <article class="matrix-card">
+            <div class="matrix-head">
+              <h4>Distribution on true incorrect</h4>
+              <span id="matrix-legend">incorrect only</span>
+            </div>
+            <div id="matrix-bar" class="bars compact"></div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="band">
+      <div class="wrap">
+        <div class="section-head">
+          <h3>Repository Map</h3>
+          <p>这些就是这个仓库里最值得同步给组内的文件。</p>
+        </div>
+        <div class="grid cards-3">
+          <a class="link-card" href="https://github.com/xingzhi0317/GradingAttack/blob/experiment/qwen3-gcg-logs-20260722/README.md">
+            <h4>README</h4>
+            <p>项目结构、baseline、攻击和防御入口。</p>
+          </a>
+          <a class="link-card" href="https://github.com/xingzhi0317/GradingAttack/blob/experiment/qwen3-gcg-logs-20260722/docs/qwen3_gcg_experiment_20260722.md">
+            <h4>Experiment log</h4>
+            <p>Qwen3 GCG 的实验记录和 heldout100 ablation。</p>
+          </a>
+          <a class="link-card" href="https://github.com/xingzhi0317/GradingAttack/blob/experiment/qwen3-gcg-logs-20260722/configs/GCG-Qwen3-4B-Instruct-local-transferbank100-heldout-nobank.yaml">
+            <h4>No-bank config</h4>
+            <p>去掉 suffix bank 的对照配置。</p>
+          </a>
+          <a class="link-card" href="https://github.com/xingzhi0317/GradingAttack/blob/experiment/qwen3-gcg-logs-20260722/configs/experiment_snapshots/GCG-Qwen3-4B-Instruct-local-transferbank100-heldout-nobank.yaml">
+            <h4>Snapshot</h4>
+            <p>可复现实验的配置快照。</p>
+          </a>
+          <a class="link-card" href="https://github.com/xingzhi0317/GradingAttack/blob/experiment/qwen3-gcg-logs-20260722/docs/qwen3_gcg_experiment_20260722.md">
+            <h4>No-bank metrics</h4>
+            <p>完整指标文件，包含 QWK / ASR / confusion matrix。</p>
+          </a>
+          <a class="link-card" href="https://github.com/xingzhi0317/GradingAttack/blob/experiment/qwen3-gcg-logs-20260722/docs/qwen3_gcg_experiment_20260722.md">
+            <h4>No-bank records</h4>
+            <p>100 条 heldout 样本的逐条结果。</p>
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="./app.js"></script>
+</body>
+</html>

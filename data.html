@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Data Notes - GradingAttack</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="wrap topbar-inner">
+      <a class="brand-block" href="./index.html">
+        <span class="eyebrow">GradingAttack</span>
+        <span class="brand-title">数据说明</span>
+      </a>
+      <nav class="nav">
+        <a href="./index.html">首页</a>
+        <a href="./attacks.html">攻击</a>
+        <a href="./defenses.html">防御</a>
+        <a href="./metrics.html">结果</a>
+        <a class="active" href="./data.html">数据说明</a>
+        <a href="./code.html">代码</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="page-hero compact">
+      <div class="wrap narrow">
+        <p class="kicker">Evaluation notes</p>
+        <h1>总体数据和准确性口径</h1>
+        <p class="lead">
+          这一页集中说明页面中数字的来源、统计口径和限制，避免把 demo 里的交互效果误读成完整评估。
+        </p>
+      </div>
+    </section>
+
+    <section class="band">
+      <div class="wrap cards-3">
+        <article class="info-card">
+          <h2>Baseline validity</h2>
+          <p>Old test_ua 三分类: Valid 529/540，QWK 0.6812，Accuracy 0.6427。</p>
+        </article>
+        <article class="info-card">
+          <h2>Attack success</h2>
+          <p>ASR 以最终 generated attacked output 是否解析为 correct 为准，不只看 loss。</p>
+        </article>
+        <article class="info-card">
+          <h2>Heldout100</h2>
+          <p>bank/no-bank 对照使用同一模型、同一数据和同一 screening 设置，只改变 suffix bank。</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="band alt">
+      <div class="wrap cards-3">
+        <article class="info-card">
+          <h2>Binary baseline</h2>
+          <p>scientsbank.jsonl: 5000/5000 valid，Accuracy 0.7608，QWK 0.5066。</p>
+        </article>
+        <article class="info-card">
+          <h2>Upper bound</h2>
+          <p>Hybrid injection 是更强的上界参考，不等同于纯 GCG 结果。</p>
+        </article>
+        <article class="info-card">
+          <h2>Demo scope</h2>
+          <p>首页交互区展示的是代表性样本，用来解释机制，不替代总体统计。</p>
+        </article>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

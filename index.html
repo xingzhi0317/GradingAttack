@@ -3,148 +3,74 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>GradingAttack Interactive Lab</title>
+  <title>GradingAttack</title>
   <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
   <header class="topbar">
     <div class="wrap topbar-inner">
-      <div>
-        <div class="eyebrow">GradingAttack Interactive Lab</div>
-        <h1>LLM 评分攻击与防御实验台</h1>
-      </div>
+      <a class="brand-block" href="./index.html">
+        <span class="eyebrow">GradingAttack</span>
+        <span class="brand-title">交互实验</span>
+      </a>
       <nav class="nav">
-        <a href="#lab">Lab</a>
-        <a href="#metrics">Metrics</a>
-        <a href="#methods">Methods</a>
+        <a class="active" href="./index.html">首页</a>
+        <a href="./attacks.html">攻击</a>
+        <a href="./defenses.html">防御</a>
+        <a href="./metrics.html">结果</a>
+        <a href="./data.html">数据说明</a>
+        <a href="./code.html">代码</a>
       </nav>
     </div>
   </header>
 
-  <main>
-    <section class="hero">
-      <div class="wrap hero-grid">
-        <div class="hero-copy">
-          <p class="kicker">White-box attack on LLM-as-a-Judger</p>
-          <h2>逐步观察一次评分攻击如何发生</h2>
-          <p class="lead">
-            选择学生答案、攻击方式和防御策略，查看原始 grading prompt、注入 suffix 后的 prompt、模型输出变化，
-            以及防御如何改写、拦截或恢复评分。
-          </p>
-          <div class="hero-tags">
-            <span>Original prompt</span>
-            <span>Attack suffix</span>
-            <span>Defense response</span>
-            <span>Verdict transition</span>
-          </div>
-        </div>
-        <aside class="hero-panel attack-card">
-          <div class="panel-title">Observed result</div>
-          <div class="hero-number">75%</div>
-          <p>GCG + suffix bank 在 heldout100 上的 ASR；去掉 bank 后降到 2%。</p>
-        </aside>
+  <main class="interactive-main">
+    <section class="interaction-shell wrap">
+      <div class="interaction-intro">
+        <p class="kicker">Interactive demo</p>
+        <h1>选择攻击和防御，观察评分变化</h1>
+        <p>
+          默认样本是一条真实标签为 incorrect 的短答案。你可以切换攻击和防御，
+          看 LLM judge 的 verdict 如何从 clean output 变到 attacked / defended output。
+        </p>
       </div>
-    </section>
 
-    <section id="lab" class="band">
-      <div class="wrap lab-grid">
-        <aside class="control-panel">
-          <div class="section-head tight">
-            <h3>Controls</h3>
-            <p>切换实验条件，右侧会同步更新。</p>
-          </div>
-
-          <label for="sample-select">Sample</label>
-          <select id="sample-select"></select>
-
+      <div class="lab-panel">
+        <aside class="control-card">
           <label for="attack-select">Attack</label>
           <select id="attack-select"></select>
 
           <label for="defense-select">Defense</label>
           <select id="defense-select"></select>
 
-          <div id="sample-note" class="callout"></div>
+          <div class="mini-note">
+            <strong id="asr-value">ASR 75%</strong>
+            <span id="asr-note">transfer suffix bank enabled</span>
+          </div>
         </aside>
 
-        <section class="workspace">
-          <div class="panel sample-panel">
-            <div class="panel-head">
-              <h3>Student QA</h3>
-              <span id="ground-truth" class="status-chip"></span>
-            </div>
-            <div id="sample-view" class="sample-view"></div>
+        <section class="sample-card">
+          <div class="sample-head">
+            <span class="metric-tag">SciEntsBank sample</span>
+            <strong>Ground truth: incorrect</strong>
           </div>
-
-          <div class="panel prompt-panel">
-            <div class="panel-head">
-              <h3>Prompt Inspector</h3>
-              <div class="segmented">
-                <button class="segment active" data-prompt="original" type="button">Original</button>
-                <button class="segment" data-prompt="attacked" type="button">Attacked</button>
-                <button class="segment" data-prompt="defended" type="button">Defended</button>
-              </div>
-            </div>
-            <pre id="prompt-view" class="prompt-view"></pre>
-          </div>
+          <h2>Why did the same apple weigh 35 and 60 marbles?</h2>
+          <p>
+            Student answer: “Maybe the balance was a little off.”
+          </p>
+          <div id="verdict-flow" class="verdict-flow"></div>
         </section>
 
-        <aside class="result-rail">
-          <div class="panel transition-panel">
-            <h3>Verdict Flow</h3>
-            <div id="verdict-flow" class="verdict-flow"></div>
-          </div>
-
-          <div class="panel">
-            <h3>Model Outputs</h3>
-            <div id="output-view" class="output-view"></div>
-          </div>
-
-          <div class="panel">
-            <h3>Defense Effect</h3>
-            <div id="defense-effect" class="defense-effect"></div>
-          </div>
+        <aside class="effect-card">
+          <span id="result-chip" class="result-chip">attack succeeds</span>
+          <h2 id="result-title">Banked GCG flips the judge</h2>
+          <p id="result-copy"></p>
+          <pre id="output-view"></pre>
         </aside>
-      </div>
-    </section>
-
-    <section id="metrics" class="band alt">
-      <div class="wrap metrics-grid">
-        <div class="panel">
-          <div class="panel-head">
-            <h3>Attack Distribution</h3>
-            <span id="asr-chip" class="status-chip"></span>
-          </div>
-          <div id="attack-bars" class="bars"></div>
-        </div>
-        <div class="panel">
-          <div class="panel-head">
-            <h3>Confusion Matrix</h3>
-            <span>heldout100</span>
-          </div>
-          <div id="matrix-table" class="matrix-table"></div>
-        </div>
-      </div>
-    </section>
-
-    <section id="methods" class="band">
-      <div class="wrap method-grid">
-        <article class="method-card">
-          <h3>GCG Attack</h3>
-          <p>通过白盒梯度优化 suffix，使评分模型更倾向输出目标 verdict。真实成功必须以 greedy generation 的 attacked output 为准。</p>
-        </article>
-        <article class="method-card">
-          <h3>Suffix Bank</h3>
-          <p>把已成功的 suffix 迁移到 heldout 样本。当前结果表明它是 ASR 从 2% 升到 75% 的关键因素。</p>
-        </article>
-        <article class="method-card">
-          <h3>Defense Layer</h3>
-          <p>Self Reminder、PPL Filter、SmoothLLM 和 Paraphrase 分别对应 prompt hardening、检测、投票与改写。</p>
-        </article>
       </div>
     </section>
   </main>
 
-  <script src="./data.js"></script>
   <script src="./app.js"></script>
 </body>
 </html>

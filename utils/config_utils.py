@@ -22,14 +22,20 @@ class DataConfig:
 
 
 def apply_data_sampling(data_list: list, data_config: DataConfig) -> list:
+    indexed = list(enumerate(data_list))
     offset = max(data_config.sample_offset, 0)
     if data_config.max_samples is None:
-        return data_list[offset:]
-    if data_config.random_seed is not None:
-        sampled = list(data_list)
+        sampled = indexed[offset:]
+    elif data_config.random_seed is not None:
+        sampled = list(indexed)
         random.Random(data_config.random_seed).shuffle(sampled)
-        return sampled[offset:offset + data_config.max_samples]
-    return data_list[offset:offset + data_config.max_samples]
+        sampled = sampled[offset:offset + data_config.max_samples]
+    else:
+        sampled = indexed[offset:offset + data_config.max_samples]
+
+    for source_index, item in sampled:
+        setattr(item, "_source_index", source_index)
+    return [item for _, item in sampled]
 
 
 @dataclass

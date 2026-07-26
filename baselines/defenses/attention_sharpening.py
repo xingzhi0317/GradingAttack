@@ -8,6 +8,24 @@ import torch.nn.functional as F
 from .base import BaseDefense
 
 
+def _get_decoder_layers(model):
+    candidates = [
+        ("model", "layers"),
+        ("language_model", "model", "layers"),
+        ("model", "language_model", "layers"),
+        ("model", "language_model", "model", "layers"),
+    ]
+    for path in candidates:
+        obj = model
+        for attr in path:
+            obj = getattr(obj, attr, None)
+            if obj is None:
+                break
+        if obj is not None:
+            return obj
+    raise ValueError("AttentionSharpening expects a model with decoder layers")
+
+
 class AttentionSharpening(BaseDefense):
     """Sharpen attention distributions during defended inference.
 
@@ -32,19 +50,18 @@ class AttentionSharpening(BaseDefense):
         return True
 
     def install_model_hooks(self, model) -> list:
-        if not hasattr(model, "model") or not hasattr(model.model, "layers"):
-            raise ValueError("AttentionSharpening expects a causal LM with model.layers")
+        layers = _get_decoder_layers(model)
 
         removers = []
         for layer_idx in self._resolve_layer_indices(model):
-            attn = model.model.layers[layer_idx].self_attn
+            attn = layers[layer_idx].self_attn
             original_forward = attn.forward
             attn.forward = _make_sharpened_forward(original_forward, self.temperature)
             removers.append(lambda attn=attn, orig=original_forward: setattr(attn, "forward", orig))
         return removers
 
     def _resolve_layer_indices(self, model) -> List[int]:
-        num_layers = len(model.model.layers)
+        num_layers = len(_get_decoder_layers(model))
         if self.layers == "all":
             return list(range(num_layers))
         if isinstance(self.layers, list):

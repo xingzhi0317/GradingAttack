@@ -21,7 +21,14 @@ def _needs_eager_attention(config: AttackConfig) -> bool:
 
 def _load_pipeline_model(model_path: str, device: str, config: AttackConfig):
     import torch
-    from transformers import AutoModelForCausalLM
+    from transformers import AutoConfig, AutoModelForCausalLM
+
+    model_config = AutoConfig.from_pretrained(model_path, trust_remote_code=True)
+    model_cls = AutoModelForCausalLM
+    if str(getattr(model_config, "model_type", "")).startswith("qwen3_5"):
+        from transformers import AutoModelForMultimodalLM
+
+        model_cls = AutoModelForMultimodalLM
 
     kwargs = dict(trust_remote_code=True, torch_dtype=torch.bfloat16)
     if _needs_eager_attention(config):
@@ -30,7 +37,7 @@ def _load_pipeline_model(model_path: str, device: str, config: AttackConfig):
             "[grading_attack] Using attn_implementation=eager for attention hook defense",
             flush=True,
         )
-    model = AutoModelForCausalLM.from_pretrained(model_path, **kwargs)
+    model = model_cls.from_pretrained(model_path, **kwargs)
     return model.to(device)
 
 

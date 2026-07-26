@@ -14,13 +14,33 @@ import json
 import os
 import torch
 from typing import List, Optional
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from transformers import AutoConfig, AutoModelForCausalLM, AutoTokenizer
 
 from utils.config_utils import AttackConfig, apply_data_sampling
 from utils.log_utils import GradingAttackLogger
 from utils.data_utils import read_student_qa_data_from_jsonl, AttackResult, extract_grade
 from eval.metrics import compute_metrics, EvalMetrics
 from baselines.defenses.base import BaseDefense, DefenseRejectException
+
+
+def _load_pipeline_model(model_path: str, device: str, config: AttackConfig):
+    model_config = AutoConfig.from_pretrained(model_path, trust_remote_code=True)
+    model_cls = AutoModelForCausalLM
+    if str(getattr(model_config, "model_type", "")).startswith("qwen3_5"):
+        from transformers import AutoModelForMultimodalLM
+
+        model_cls = AutoModelForMultimodalLM
+
+    kwargs = dict(trust_remote_code=True, torch_dtype=torch.bfloat16)
+    if config.defenses:
+        eager_types = {"attentionsharpening", "hijackingsuppression"}
+        configured = {
+            d.type.lower().replace("-", "").replace("_", "") for d in config.defenses
+        }
+        if configured & eager_types:
+            kwargs["attn_implementation"] = "eager"
+
+    return model_cls.from_pretrained(model_path, **kwargs).to(device)
 
 
 class GradingDefensePipeline:
@@ -188,11 +208,11 @@ class GradingDefensePipeline:
 
         # 如果未传入 model，在此加载 (RolePlay 用 vLLM 则不需)
         if self.model is None:
-            self.model = AutoModelForCausalLM.from_pretrained(
+            self.model = _load_pipeline_model(
                 config.model_config.path,
-                trust_remote_code=True,
-                torch_dtype=torch.bfloat16,
-            ).to(self.device)
+                self.device,
+                config,
+            )
         if self.tokenizer is None:
             self.tokenizer = AutoTokenizer.from_pretrained(
                 config.model_config.path,
@@ -227,6 +247,10 @@ class GradingDefensePipeline:
                                              [{"role": "user", "content": prompt}],
                                              target, gcg_config)
                     attack_suffix = gcg_result.best_string
+                    attack_meta = {
+                        "best_string": gcg_result.best_string,
+                        "best_loss": gcg_result.best_loss,
+                    }
                     attacked_messages[0]["content"] = self._insert_attack_suffix(
                         prompt, attack_suffix
                     )
@@ -312,10 +336,12 @@ class GradingDefensePipeline:
                         "rejected": rejected,
                         "attack_suffix": attack_suffix,
                         "attack": attack_meta,
-                    }
+                    },
                 )
-                logger.result(result.as_dict())
-                all_results.append(result.as_dict())
+                result_dict = result.as_dict()
+                result_dict["source_index"] = getattr(data, "_source_index", None)
+                logger.result(result_dict)
+                all_results.append(result_dict)
 
             # ── Step 5: 计算指标 ──
             if all_results:

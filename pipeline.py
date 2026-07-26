@@ -40,6 +40,39 @@ class GradingDefensePipeline:
         # 检查是否有 SmoothLLM 类需要多次推理的防御
         self.multi_gen_defenses = [d for d in self.defenses
                                    if d.requires_multiple_generations()]
+        self.context_aware_defenses = any(
+            d.requires_inference_context() for d in self.defenses
+        )
+
+    def _install_defense_hooks(self, prompt_content: str, attack_suffix: str) -> list:
+        removers = []
+        for defense in self.defenses:
+            if defense.requires_inference_context():
+                defense.set_inference_context(
+                    self.tokenizer,
+                    prompt_content,
+                    attack_suffix,
+                )
+            if defense.requires_model_hooks():
+                removers.extend(defense.install_model_hooks(self.model))
+        return removers
+
+    @staticmethod
+    def _remove_defense_hooks(removers: list) -> None:
+        for remove in removers:
+            remove()
+
+    def _run_with_defense_hooks(
+        self,
+        prompt_content: str,
+        attack_suffix: str,
+        fn,
+    ):
+        removers = self._install_defense_hooks(prompt_content, attack_suffix)
+        try:
+            return fn()
+        finally:
+            self._remove_defense_hooks(removers)
 
     def run(self):
         config = self.config
@@ -75,6 +108,7 @@ class GradingDefensePipeline:
 
                 # ── Step 2: 攻击推理 ──
                 attacked_messages = [{"role": "user", "content": prompt}]
+                attack_suffix = ""
                 if config.attack_method.lower() == "gcg":
                     import nanogcg
                     target = config.params["target"]
@@ -82,9 +116,11 @@ class GradingDefensePipeline:
                     gcg_result = nanogcg.run(self.model, self.tokenizer,
                                              [{"role": "user", "content": prompt}],
                                              target, gcg_config)
-                    attacked_messages[0]["content"] = prompt + gcg_result.best_string
+                    attack_suffix = gcg_result.best_string
+                    attacked_messages[0]["content"] = prompt + attack_suffix
                 elif config.attack_method.lower() == "roleplay":
-                    attacked_messages[0]["content"] = prompt + config.params["adv_prompt"]
+                    attack_suffix = config.params["adv_prompt"]
+                    attacked_messages[0]["content"] = prompt + attack_suffix
 
                 attacked_resp = self._generate(attacked_messages)
 
@@ -97,11 +133,17 @@ class GradingDefensePipeline:
                     try:
                         # 对有多次推理需求的 defense 做批量扰动+投票
                         if self.multi_gen_defenses:
-                            defended_original_resp = self._generate_with_voting(
-                                [{"role": "user", "content": prompt}]
+                            defended_original_resp = self._run_with_defense_hooks(
+                                prompt,
+                                "",
+                                lambda: self._generate_with_voting(
+                                    [{"role": "user", "content": prompt}]
+                                ),
                             )
-                            defended_attacked_resp = self._generate_with_voting(
-                                attacked_messages
+                            defended_attacked_resp = self._run_with_defense_hooks(
+                                attacked_messages[0]["content"],
+                                attack_suffix,
+                                lambda: self._generate_with_voting(attacked_messages),
                             )
                         else:
                             # pre_process 单次
@@ -109,12 +151,20 @@ class GradingDefensePipeline:
                             for d in self.defenses:
                                 defended_prompt = d.pre_process(defended_prompt)
 
-                            defended_original_resp = self._generate(
-                                [{"role": "user", "content": defended_prompt}]
+                            defended_original_resp = self._run_with_defense_hooks(
+                                defended_prompt,
+                                "",
+                                lambda: self._generate(
+                                    [{"role": "user", "content": defended_prompt}]
+                                ),
                             )
-                            defended_attacked_resp = self._generate(
-                                [{"role": "user", "content": defended_prompt
-                                  + (attacked_messages[0]["content"][len(prompt):])}]
+                            defended_attacked_content = defended_prompt + attack_suffix
+                            defended_attacked_resp = self._run_with_defense_hooks(
+                                defended_attacked_content,
+                                attack_suffix,
+                                lambda: self._generate(
+                                    [{"role": "user", "content": defended_attacked_content}]
+                                ),
                             )
 
                         # post_process

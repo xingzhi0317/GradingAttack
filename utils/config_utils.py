@@ -1,7 +1,7 @@
 import os
 import yaml
 from typing import Optional, Dict, List
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass, asdict, field
 from collections.abc import Iterable
 
 
@@ -47,8 +47,8 @@ class AttackConfig:
     name: Optional[str] = None
     model_config: Optional[ModelConfig] = None
     data_config: Optional[List[DataConfig]] = None
-    generation_config: GenerationConfig = GenerationConfig()
-    log_config: LogConfig = LogConfig()
+    generation_config: GenerationConfig = field(default_factory=GenerationConfig)
+    log_config: LogConfig = field(default_factory=LogConfig)
     attack_method: str = "GCG"
     params: Optional[Dict] = None
     grading_template: Optional[str] = None
@@ -87,7 +87,6 @@ def parse_config(path: str) -> AttackConfig:
     else:
         params = {}
     
-    generation_config = GenerationConfig(**config_dict["generation"])
     attack_method = config_dict["method"]
     grading_template = config_dict["grading_template"]
 

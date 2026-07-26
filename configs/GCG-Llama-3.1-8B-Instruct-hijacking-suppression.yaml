@@ -14,7 +14,7 @@ params:
 
 model:
   name: Llama-3.1-8B-Instruct
-  path: meta-llama/Llama-3.1-8B-Instruct
+  path: /home/ruijia/wxz/hf_models/models/LLM-Research--Meta-Llama-3.1-8B-Instruct/snapshots/master
 
 data:
   - name: scientsbank

@@ -1,4 +1,5 @@
 import os
+import random
 import yaml
 from typing import Optional, Dict, List
 from dataclasses import dataclass, asdict, field
@@ -15,6 +16,18 @@ class ModelConfig:
 class DataConfig:
     name: Optional[str] = None
     path: Optional[str] = None
+    max_samples: Optional[int] = None
+    random_seed: Optional[int] = None
+
+
+def apply_data_sampling(data_list: list, data_config: DataConfig) -> list:
+    if data_config.max_samples is None:
+        return data_list
+    if data_config.random_seed is not None:
+        sampled = list(data_list)
+        random.Random(data_config.random_seed).shuffle(sampled)
+        return sampled[:data_config.max_samples]
+    return data_list[:data_config.max_samples]
 
 
 @dataclass

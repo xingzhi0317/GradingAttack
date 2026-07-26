@@ -1,5 +1,6 @@
 logs/
 logs_defense/
+logs_gcg_runs/
 result/
 result_defense/
 result_gcg_*/

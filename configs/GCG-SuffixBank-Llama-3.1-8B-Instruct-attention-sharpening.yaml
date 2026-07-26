@@ -16,12 +16,12 @@ model:
 data:
   - name: scientsbank
     path: ./dataset/scientsbank.jsonl
-    max_samples: 100
+    max_samples: 50
     random_seed: 42
 
 generation:
   temperature: 0.01
-  max_tokens: 256
+  max_tokens: 128
 
 defenses:
   - type: attention_sharpening

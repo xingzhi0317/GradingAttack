@@ -1,5 +1,3 @@
-from baselines.roleplay.roleplay import RolePlay
-from baselines.gcg.gcg import GCG
 from baselines.defenses import (
     PerplexityFilter, SmoothLLM, SelfReminder,
     ParaphraseDefense, AttentionSharpening,
@@ -82,8 +80,12 @@ class GradingAttack:
             # pipeline 模式: 在 pipeline.py 中统一处理
             self.attack = None
         elif config.attack_method.lower() == "gcg":
+            from baselines.gcg.gcg import GCG
+
             self.attack = GCG(config)
         elif config.attack_method.lower() == "roleplay":
+            from baselines.roleplay.roleplay import RolePlay
+
             self.attack = RolePlay(config)
         else:
             raise ValueError(f"Not supported attack method {config.attack_method}")

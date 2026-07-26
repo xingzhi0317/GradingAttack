@@ -8,7 +8,7 @@ params:
     num_steps: 100
     search_width: 64
     topk: 64
-    use_prefix_cache: true
+    use_prefix_cache: false
 
 model:
   name: Llama-3.1-8B-Instruct

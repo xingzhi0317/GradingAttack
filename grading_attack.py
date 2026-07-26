@@ -1,3 +1,5 @@
+import os
+
 from baselines.defenses import (
     PerplexityFilter, SmoothLLM, SelfReminder,
     ParaphraseDefense, AttentionSharpening,
@@ -37,7 +39,7 @@ def _build_defenses(config: AttackConfig, model=None, tokenizer=None):
     if not config.defenses:
         return []
     defenses = []
-    device = config.params.get("device", "cuda")
+    device = os.environ.get("GRADING_ATTACK_DEVICE", config.params.get("device", "cuda"))
     for dc in config.defenses:
         t = _defense_type_key(dc.type)
         if t == "perplexityfilter":
@@ -95,7 +97,10 @@ class GradingAttack:
             from pipeline import GradingDefensePipeline
             from transformers import AutoTokenizer
 
-            device = self.config.params.get("device", "cuda")
+            device = os.environ.get(
+                "GRADING_ATTACK_DEVICE",
+                self.config.params.get("device", "cuda"),
+            )
             model = _load_pipeline_model(
                 self.config.model_config.path,
                 device,

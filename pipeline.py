@@ -11,6 +11,7 @@ Attack-Defense 联合评估 Pipeline。
 """
 
 import json
+import os
 import torch
 from typing import List, Optional
 from transformers import AutoModelForCausalLM, AutoTokenizer
@@ -36,7 +37,10 @@ class GradingDefensePipeline:
         self.model = model
         self.tokenizer = tokenizer
         self.defenses = defenses or []
-        self.device = config.params.get("device", "cuda")
+        self.device = os.environ.get(
+            "GRADING_ATTACK_DEVICE",
+            config.params.get("device", "cuda"),
+        )
 
         # 检查是否有 SmoothLLM 类需要多次推理的防御
         self.multi_gen_defenses = [d for d in self.defenses
@@ -102,17 +106,34 @@ class GradingDefensePipeline:
 
         fallback_suffix = suffix_bank[0]["suffix"]
         fallback_content = self._insert_attack_suffix(prompt, fallback_suffix)
-        fallback_resp = ""
+        fallback_resp = self._generate([{"role": "user", "content": fallback_content}])
+        fallback_grade = self._parse_response_grade(fallback_resp)
         fallback_meta = suffix_bank[0]["meta"]
 
-        for bank_index, item in enumerate(suffix_bank):
+        if original_grade == target_grade:
+            return fallback_suffix, fallback_content, fallback_resp, {
+                "bank_index": 0,
+                "bank_meta": fallback_meta,
+                "bank_success": False,
+                "bank_skipped_full_search": True,
+                "original_grade": original_grade,
+                "attacked_grade": fallback_grade,
+            }
+
+        if fallback_grade == target_grade:
+            return fallback_suffix, fallback_content, fallback_resp, {
+                "bank_index": 0,
+                "bank_meta": fallback_meta,
+                "bank_success": True,
+                "original_grade": original_grade,
+                "attacked_grade": fallback_grade,
+            }
+
+        for bank_index, item in enumerate(suffix_bank[1:], start=1):
             attack_suffix = item["suffix"]
             attacked_content = self._insert_attack_suffix(prompt, attack_suffix)
             attacked_resp = self._generate([{"role": "user", "content": attacked_content}])
             attacked_grade = self._parse_response_grade(attacked_resp)
-
-            if bank_index == 0:
-                fallback_resp = attacked_resp
 
             if original_grade != target_grade and attacked_grade == target_grade:
                 return attack_suffix, attacked_content, attacked_resp, {

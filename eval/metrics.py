@@ -99,7 +99,7 @@ def compute_metrics(results: List[dict],
     asr = flipped_incorrect / max(total_incorrect, 1)
 
     # CAS (论文公式)
-    pi = min(c, accuracy_after / max(accuracy_before, 1e-8))
+    pi = min(c, max(accuracy_after / max(accuracy_before, 1e-8), 1e-8))
     import math
     betafn = math.gamma(alpha) * math.gamma(beta) / math.gamma(alpha + beta)
     cas = (asr ** gamma) * (pi ** (alpha - 1)) * ((1 - pi) ** (beta - 1)) / betafn
@@ -130,7 +130,7 @@ def compute_metrics(results: List[dict],
                 flipped_defended += 1
         asr_defended = flipped_defended / max(total_incorrect, 1)
 
-        pi_d = min(c, accuracy_defended / max(accuracy_before, 1e-8))
+        pi_d = min(c, max(accuracy_defended / max(accuracy_before, 1e-8), 1e-8))
         cas_defended = (asr_defended ** gamma) * (pi_d ** (alpha - 1)) * \
                        ((1 - pi_d) ** (beta - 1)) / betafn
 

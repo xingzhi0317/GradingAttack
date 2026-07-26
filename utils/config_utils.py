@@ -18,16 +18,18 @@ class DataConfig:
     path: Optional[str] = None
     max_samples: Optional[int] = None
     random_seed: Optional[int] = None
+    sample_offset: int = 0
 
 
 def apply_data_sampling(data_list: list, data_config: DataConfig) -> list:
+    offset = max(data_config.sample_offset, 0)
     if data_config.max_samples is None:
-        return data_list
+        return data_list[offset:]
     if data_config.random_seed is not None:
         sampled = list(data_list)
         random.Random(data_config.random_seed).shuffle(sampled)
-        return sampled[:data_config.max_samples]
-    return data_list[:data_config.max_samples]
+        return sampled[offset:offset + data_config.max_samples]
+    return data_list[offset:offset + data_config.max_samples]
 
 
 @dataclass
